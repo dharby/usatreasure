@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Wallet, Copy, Check, Info, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CountdownTimer from "@/components/CountdownTimer";
 import { getCurrentStage, calculateTokens, formatNumber, formatUSD, SOL_PRICE_USD, TREASURY_ADDRESS, getTotalRaised, getTotalSold, PRESALE_ALLOCATION } from "@/lib/presale-data";
 import { toast } from "sonner";
 
@@ -78,6 +79,9 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
                 <span>{formatNumber(PRESALE_ALLOCATION)} total</span>
               </div>
             </div>
+
+            {/* Countdown Timer */}
+            <CountdownTimer targetDate={new Date(Date.now() + 7 * 86400000)} label="Current Stage Ends In" />
 
             {/* Bonus badge */}
             {stage.bonus > 0 && (

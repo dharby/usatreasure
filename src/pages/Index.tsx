@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import PresaleCard from "@/components/PresaleCard";
@@ -9,36 +10,40 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 const Index = () => {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
+  const { publicKey, connected, connect, disconnect, select, wallets } = useWallet();
 
-  const handleConnect = useCallback(() => {
-    // Simulate wallet connection
-    const mockAddress = "7xKXt" + Math.random().toString(36).slice(2, 6) + "...q3Fm";
-    setWalletAddress(mockAddress);
-    setWalletConnected(true);
-    toast.success("Wallet connected successfully!");
-  }, []);
+  const walletAddress = publicKey ? publicKey.toBase58() : "";
 
-  const handleDisconnect = useCallback(() => {
-    setWalletConnected(false);
-    setWalletAddress("");
+  const handleConnect = useCallback(async () => {
+    try {
+      if (wallets.length > 0 && !publicKey) {
+        select(wallets[0].adapter.name);
+        await connect();
+      }
+      toast.success("Wallet connected successfully!");
+    } catch {
+      toast.error("Failed to connect wallet. Please install Phantom or Solflare.");
+    }
+  }, [wallets, publicKey, select, connect]);
+
+  const handleDisconnect = useCallback(async () => {
+    await disconnect();
     toast.info("Wallet disconnected");
-  }, []);
+  }, [disconnect]);
 
   return (
     <div className="min-h-screen bg-background">
       <Header
-        walletConnected={walletConnected}
+        walletConnected={connected}
         walletAddress={walletAddress}
         onConnect={handleConnect}
         onDisconnect={handleDisconnect}
       />
       <HeroSection />
-      <PresaleCard walletConnected={walletConnected} onConnect={handleConnect} />
+      <PresaleCard walletConnected={connected} onConnect={handleConnect} />
       <StagesSection />
       <TokenomicsSection />
-      <DashboardSection walletConnected={walletConnected} onConnect={handleConnect} />
+      <DashboardSection walletConnected={connected} onConnect={handleConnect} />
       <Footer />
     </div>
   );
