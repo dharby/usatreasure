@@ -1,0 +1,64 @@
+export interface PresaleStage {
+  id: number;
+  name: string;
+  price: number; // USD per token
+  allocation: number; // tokens
+  sold: number; // tokens sold
+  bonus: number; // percentage
+}
+
+export const PRESALE_STAGES: PresaleStage[] = [
+  { id: 1, name: "Eagle", price: 0.005, allocation: 50_000_000, sold: 50_000_000, bonus: 50 },
+  { id: 2, name: "Liberty", price: 0.008, allocation: 50_000_000, sold: 50_000_000, bonus: 40 },
+  { id: 3, name: "Freedom", price: 0.012, allocation: 50_000_000, sold: 38_750_000, bonus: 35 },
+  { id: 4, name: "Patriot", price: 0.018, allocation: 50_000_000, sold: 0, bonus: 30 },
+  { id: 5, name: "Sentinel", price: 0.025, allocation: 50_000_000, sold: 0, bonus: 25 },
+  { id: 6, name: "Guardian", price: 0.035, allocation: 40_000_000, sold: 0, bonus: 20 },
+  { id: 7, name: "Sovereign", price: 0.050, allocation: 40_000_000, sold: 0, bonus: 15 },
+  { id: 8, name: "Dominion", price: 0.070, allocation: 30_000_000, sold: 0, bonus: 10 },
+  { id: 9, name: "Empire", price: 0.100, allocation: 20_000_000, sold: 0, bonus: 5 },
+  { id: 10, name: "Apex", price: 0.150, allocation: 20_000_000, sold: 0, bonus: 0 },
+];
+
+export const TREASURY_ADDRESS = "USATreasury...xxxx";
+export const SOL_PRICE_USD = 178.50;
+export const TOTAL_SUPPLY = 1_000_000_000;
+export const PRESALE_ALLOCATION = 400_000_000;
+
+export const TOKENOMICS = [
+  { label: "Presale", percentage: 40, color: "hsl(42 60% 58%)" },
+  { label: "Liquidity Pool", percentage: 25, color: "hsl(220 60% 50%)" },
+  { label: "Team & Advisors", percentage: 10, color: "hsl(160 50% 45%)" },
+  { label: "Marketing", percentage: 10, color: "hsl(0 60% 55%)" },
+  { label: "Ecosystem", percentage: 10, color: "hsl(280 50% 55%)" },
+  { label: "Reserve", percentage: 5, color: "hsl(42 30% 40%)" },
+];
+
+export function getCurrentStage(): PresaleStage {
+  return PRESALE_STAGES.find(s => s.sold < s.allocation) || PRESALE_STAGES[PRESALE_STAGES.length - 1];
+}
+
+export function getTotalRaised(): number {
+  return PRESALE_STAGES.reduce((acc, s) => acc + s.sold * s.price, 0);
+}
+
+export function getTotalSold(): number {
+  return PRESALE_STAGES.reduce((acc, s) => acc + s.sold, 0);
+}
+
+export function calculateTokens(solAmount: number, stage: PresaleStage): { base: number; bonus: number; total: number } {
+  const usdValue = solAmount * SOL_PRICE_USD;
+  const base = usdValue / stage.price;
+  const bonus = base * (stage.bonus / 100);
+  return { base: Math.floor(base), bonus: Math.floor(bonus), total: Math.floor(base + bonus) };
+}
+
+export function formatNumber(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return n.toLocaleString();
+}
+
+export function formatUSD(n: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+}
