@@ -45,6 +45,7 @@ const Index = () => {
       <StagesSection />
       <TokenomicsSection />
       <DashboardSection walletConnected={connected} onConnect={handleConnect} />
+      <FAQSection />
       <Footer />
     </div>
   );
