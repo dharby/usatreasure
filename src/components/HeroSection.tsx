@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { ArrowDown, Shield, TrendingUp, Users } from "lucide-react";
 import coinImage from "@/assets/usat-coin.png";
+import { usePresaleConfig } from "@/lib/presale-config-context";
 
 export default function HeroSection() {
+  const { currentStage } = usePresaleConfig();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Background effects */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/3 rounded-full blur-3xl" />
@@ -22,7 +24,7 @@ export default function HeroSection() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-6">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-xs text-primary font-medium">Stage 3 — LIVE NOW</span>
+                <span className="text-xs text-primary font-medium">Stage {currentStage.id}: {currentStage.name} — LIVE NOW</span>
               </div>
 
               <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight mb-6">

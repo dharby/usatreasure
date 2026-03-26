@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
-import { TOKENOMICS, TOTAL_SUPPLY, formatNumber } from "@/lib/presale-data";
+import { formatNumber } from "@/lib/presale-data";
+import { usePresaleConfig } from "@/lib/presale-config-context";
 
 export default function TokenomicsSection() {
+  const { tokenomics, totalSupply } = usePresaleConfig();
+
   return (
     <section id="tokenomics" className="py-20">
       <div className="container mx-auto px-4">
@@ -15,12 +18,12 @@ export default function TokenomicsSection() {
             <span className="gold-gradient-text">Tokenomics</span>
           </h2>
           <p className="text-muted-foreground">
-            Total Supply: <span className="text-foreground font-semibold">{formatNumber(TOTAL_SUPPLY)} USAT</span>
+            Total Supply: <span className="text-foreground font-semibold">{formatNumber(totalSupply)} USAT</span>
           </p>
         </motion.div>
 
         <div className="max-w-2xl mx-auto grid gap-3">
-          {TOKENOMICS.map((item, i) => (
+          {tokenomics.map((item, i) => (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, x: -20 }}

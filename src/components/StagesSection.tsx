@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Check, Lock, Zap } from "lucide-react";
-import { PRESALE_STAGES, formatUSD, formatNumber } from "@/lib/presale-data";
+import { formatUSD, formatNumber } from "@/lib/presale-data";
+import { usePresaleConfig } from "@/lib/presale-config-context";
 
 export default function StagesSection() {
+  const { config } = usePresaleConfig();
+
   return (
     <section id="stages" className="py-20">
       <div className="container mx-auto px-4">
@@ -21,9 +24,9 @@ export default function StagesSection() {
         </motion.div>
 
         <div className="grid gap-3 max-w-4xl mx-auto">
-          {PRESALE_STAGES.map((stage, i) => {
+          {config.stages.map((stage, i) => {
             const isSoldOut = stage.sold >= stage.allocation;
-            const isActive = !isSoldOut && (i === 0 || PRESALE_STAGES[i - 1].sold >= PRESALE_STAGES[i - 1].allocation);
+            const isActive = !isSoldOut && (i === 0 || config.stages[i - 1].sold >= config.stages[i - 1].allocation);
             const isLocked = !isSoldOut && !isActive;
             const progress = (stage.sold / stage.allocation) * 100;
 
