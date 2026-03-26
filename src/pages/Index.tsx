@@ -6,6 +6,7 @@ import PresaleCard from "@/components/PresaleCard";
 import StagesSection from "@/components/StagesSection";
 import TokenomicsSection from "@/components/TokenomicsSection";
 import DashboardSection from "@/components/DashboardSection";
+import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
