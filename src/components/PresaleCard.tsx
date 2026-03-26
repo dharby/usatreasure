@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Wallet, Copy, Check, Info, Zap } from "lucide-react";
+import { Wallet, Copy, Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CountdownTimer from "@/components/CountdownTimer";
-import { getCurrentStage, calculateTokens, formatNumber, formatUSD, SOL_PRICE_USD, TREASURY_ADDRESS, getTotalRaised, getTotalSold, PRESALE_ALLOCATION } from "@/lib/presale-data";
+import { formatNumber, formatUSD } from "@/lib/presale-data";
+import { usePresaleConfig } from "@/lib/presale-config-context";
 import { toast } from "sonner";
 
 interface PresaleCardProps {
@@ -15,14 +16,11 @@ interface PresaleCardProps {
 export default function PresaleCard({ walletConnected, onConnect }: PresaleCardProps) {
   const [solAmount, setSolAmount] = useState("");
   const [copied, setCopied] = useState(false);
-  const stage = getCurrentStage();
-  const tokens = calculateTokens(parseFloat(solAmount) || 0, stage);
-  const totalRaised = getTotalRaised();
-  const totalSold = getTotalSold();
-  const progress = (totalSold / PRESALE_ALLOCATION) * 100;
+  const { currentStage: stage, totalRaised, totalSold, progress, stageEndDate, config, calculateTokens, presaleAllocation } = usePresaleConfig();
+  const tokens = calculateTokens(parseFloat(solAmount) || 0);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(TREASURY_ADDRESS);
+    navigator.clipboard.writeText(config.treasuryAddress);
     setCopied(true);
     toast.success("Treasury address copied!");
     setTimeout(() => setCopied(false), 2000);
@@ -45,7 +43,6 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
           className="max-w-lg mx-auto"
         >
           <div className="glass-card gold-border-glow p-6 sm:p-8">
-            {/* Stage badge */}
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Current Stage</p>
@@ -57,7 +54,6 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
               </div>
             </div>
 
-            {/* Progress */}
             <div className="mb-6">
               <div className="flex justify-between text-xs text-muted-foreground mb-2">
                 <span>Total Raised: {formatUSD(totalRaised)}</span>
@@ -76,14 +72,12 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
               </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>{formatNumber(totalSold)} sold</span>
-                <span>{formatNumber(PRESALE_ALLOCATION)} total</span>
+                <span>{formatNumber(presaleAllocation)} total</span>
               </div>
             </div>
 
-            {/* Countdown Timer */}
-            <CountdownTimer targetDate={new Date(Date.now() + 7 * 86400000)} label="Current Stage Ends In" />
+            <CountdownTimer targetDate={stageEndDate} label="Current Stage Ends In" />
 
-            {/* Bonus badge */}
             {stage.bonus > 0 && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 mb-6">
                 <Zap className="w-4 h-4 text-primary" />
@@ -91,7 +85,6 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
               </div>
             )}
 
-            {/* Input */}
             <div className="space-y-4 mb-6">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">You Send (SOL)</label>
@@ -106,7 +99,7 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
                     step="0.1"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    ≈ {formatUSD((parseFloat(solAmount) || 0) * SOL_PRICE_USD)}
+                    ≈ {formatUSD((parseFloat(solAmount) || 0) * config.solPriceUsd)}
                   </span>
                 </div>
               </div>
@@ -123,7 +116,6 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
                 ))}
               </div>
 
-              {/* Token calculation */}
               {parseFloat(solAmount) > 0 && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -148,7 +140,6 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
               )}
             </div>
 
-            {/* CTA */}
             <Button
               onClick={handleContribute}
               className="w-full h-12 gold-gradient-bg text-primary-foreground font-bold text-base hover:opacity-90 transition-opacity"
@@ -157,11 +148,10 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
               {walletConnected ? "Contribute SOL" : "Connect Wallet to Contribute"}
             </Button>
 
-            {/* Treasury address */}
             <div className="mt-4 p-3 bg-muted/30 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Treasury Address</p>
               <div className="flex items-center gap-2">
-                <code className="text-xs text-foreground/70 flex-1 truncate">{TREASURY_ADDRESS}</code>
+                <code className="text-xs text-foreground/70 flex-1 truncate">{config.treasuryAddress}</code>
                 <button onClick={handleCopy} className="text-muted-foreground hover:text-primary transition-colors">
                   {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                 </button>
