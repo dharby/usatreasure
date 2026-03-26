@@ -20,7 +20,7 @@ export const PRESALE_STAGES: PresaleStage[] = [
   { id: 10, name: "Apex", price: 0.150, allocation: 20_000_000, sold: 0, bonus: 0 },
 ];
 
-export const TREASURY_ADDRESS = "USATreasury...xxxx";
+export const TREASURY_ADDRESS = "4DDufBzAtCyoJRcMqdeQXY696yuBeS97xYsnrLMgRgwR";
 export const SOL_PRICE_USD = 178.50;
 export const TOTAL_SUPPLY = 1_000_000_000;
 export const PRESALE_ALLOCATION = 400_000_000;
