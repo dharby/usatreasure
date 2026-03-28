@@ -8,6 +8,8 @@ import TokenomicsSection from "@/components/TokenomicsSection";
 import DashboardSection from "@/components/DashboardSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
+import FloatingFlags from "@/components/FloatingFlags";
+import TechBackground from "@/components/TechBackground";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -33,20 +35,24 @@ const Index = () => {
   }, [disconnect]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        walletConnected={connected}
-        walletAddress={walletAddress}
-        onConnect={handleConnect}
-        onDisconnect={handleDisconnect}
-      />
-      <HeroSection />
-      <PresaleCard walletConnected={connected} onConnect={handleConnect} />
-      <StagesSection />
-      <TokenomicsSection />
-      <DashboardSection walletConnected={connected} onConnect={handleConnect} />
-      <FAQSection />
-      <Footer />
+    <div className="min-h-screen bg-background relative">
+      <TechBackground />
+      <FloatingFlags />
+      <div className="relative z-10">
+        <Header
+          walletConnected={connected}
+          walletAddress={walletAddress}
+          onConnect={handleConnect}
+          onDisconnect={handleDisconnect}
+        />
+        <HeroSection />
+        <PresaleCard walletConnected={connected} onConnect={handleConnect} />
+        <StagesSection />
+        <TokenomicsSection />
+        <DashboardSection walletConnected={connected} onConnect={handleConnect} />
+        <FAQSection />
+        <Footer />
+      </div>
     </div>
   );
 };
