@@ -42,9 +42,9 @@ const FAQ_ITEMS = [
       "Total supply is 1 billion $USAT tokens: 40% Presale, 25% Liquidity Pool, 10% Team & Advisors (vested), 10% Marketing, 10% Ecosystem Development, and 5% Reserve. This structure ensures long-term sustainability and growth.",
   },
   {
-    question: "Is there a minimum purchase amount?",
+    question: "Is there a minimum purchase for the bonus?",
     answer:
-      "Yes, the minimum deposit is 3 SOL. Please ensure you send at least 3 SOL to the treasury address to complete your purchase. Deposits below the minimum will not be processed.",
+      "A minimum deposit of 3 SOL is required to receive the stage bonus tokens added to your airdrop. Purchases below 3 SOL will still receive base tokens, but will not qualify for the bonus allocation.",
   },
   {
     question: "What wallets are supported?",
@@ -102,7 +102,7 @@ export default function FAQSection() {
                     {item.answer === "how-to-buy" ? (
                       <div className="space-y-4 text-muted-foreground text-sm">
                         <p>
-                          Deposit a minimum of <strong className="text-primary">3 SOL</strong> into the treasury address below. Your $USAT tokens will be automatically airdropped to your wallet.
+                          Deposit SOL into the treasury address below. Your $USAT tokens will be automatically airdropped to your wallet. <strong className="text-primary">Deposit a minimum of 3 SOL</strong> to qualify for bonus tokens on your purchase.
                         </p>
                         <div className="p-4 bg-muted/30 rounded-xl border border-border/50">
                           <p className="text-xs text-muted-foreground mb-2">Treasury Address</p>
