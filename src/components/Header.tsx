@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Wallet, Shield } from "lucide-react";
+import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import coinImage from "@/assets/usat-coin.png";
 
 interface HeaderProps {
@@ -13,11 +14,20 @@ interface HeaderProps {
 
 export default function Header({ walletConnected, walletAddress, onConnect, onDisconnect }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { setVisible } = useWalletModal();
   const navItems = ["Presale", "Tokenomics", "Stages", "Dashboard"];
 
   const scrollTo = (id: string) => {
     document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: "smooth" });
     setMobileOpen(false);
+  };
+
+  const handleWalletClick = () => {
+    if (walletConnected) {
+      onDisconnect();
+    } else {
+      setVisible(true);
+    }
   };
 
   return (
@@ -39,12 +49,12 @@ export default function Header({ walletConnected, walletAddress, onConnect, onDi
 
         <div className="flex items-center gap-3">
           {walletConnected ? (
-            <Button variant="outline" size="sm" onClick={onDisconnect} className="border-primary/30 text-primary hover:bg-primary/10">
+            <Button variant="outline" size="sm" onClick={handleWalletClick} className="border-primary/30 text-primary hover:bg-primary/10">
               <Wallet className="w-4 h-4 mr-2" />
               {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
             </Button>
           ) : (
-            <Button size="sm" onClick={onConnect} className="gold-gradient-bg text-primary-foreground font-semibold hover:opacity-90">
+            <Button size="sm" onClick={handleWalletClick} className="gold-gradient-bg text-primary-foreground font-semibold hover:opacity-90">
               <Wallet className="w-4 h-4 mr-2" />
               Connect Wallet
             </Button>

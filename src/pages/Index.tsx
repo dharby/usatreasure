@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import PresaleCard from "@/components/PresaleCard";
@@ -13,21 +14,14 @@ import TechBackground from "@/components/TechBackground";
 import { toast } from "sonner";
 
 const Index = () => {
-  const { publicKey, connected, connect, disconnect, select, wallets } = useWallet();
+  const { publicKey, connected, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
 
   const walletAddress = publicKey ? publicKey.toBase58() : "";
 
-  const handleConnect = useCallback(async () => {
-    try {
-      if (wallets.length > 0 && !publicKey) {
-        select(wallets[0].adapter.name);
-        await connect();
-      }
-      toast.success("Wallet connected successfully!");
-    } catch {
-      toast.error("Failed to connect wallet. Please install Phantom or Solflare.");
-    }
-  }, [wallets, publicKey, select, connect]);
+  const handleConnect = useCallback(() => {
+    setVisible(true);
+  }, [setVisible]);
 
   const handleDisconnect = useCallback(async () => {
     await disconnect();
@@ -49,7 +43,7 @@ const Index = () => {
         <PresaleCard walletConnected={connected} onConnect={handleConnect} />
         <StagesSection />
         <TokenomicsSection />
-        <DashboardSection walletConnected={connected} onConnect={handleConnect} />
+        <DashboardSection walletConnected={connected} walletAddress={walletAddress} onConnect={handleConnect} />
         <FAQSection />
         <Footer />
       </div>
