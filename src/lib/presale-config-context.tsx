@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { PresaleStage, PRESALE_STAGES, SOL_PRICE_USD, TREASURY_ADDRESS, TOKENOMICS, TOTAL_SUPPLY, PRESALE_ALLOCATION } from "./presale-data";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { PresaleStage, PRESALE_STAGES, SOL_PRICE_USD, TREASURY_ADDRESS, TREASURY_ADDRESSES, TOKENOMICS, TOTAL_SUPPLY, PRESALE_ALLOCATION, MIN_SOL, MAX_SOL, SupportedCurrency } from "./presale-data";
 
 const STORAGE_KEY = "usat_admin_config";
 
@@ -27,6 +27,9 @@ interface PresaleContextValue {
   tokenomics: typeof TOKENOMICS;
   totalSupply: number;
   presaleAllocation: number;
+  treasuryAddresses: Record<string, string>;
+  minSol: number;
+  maxSol: number;
   calculateTokens: (solAmount: number) => { base: number; bonus: number; total: number };
 }
 
@@ -54,10 +57,14 @@ function deriveContext(config: PresaleConfig): PresaleContextValue {
     tokenomics: TOKENOMICS,
     totalSupply: TOTAL_SUPPLY,
     presaleAllocation: PRESALE_ALLOCATION,
+    treasuryAddresses: TREASURY_ADDRESSES,
+    minSol: MIN_SOL,
+    maxSol: MAX_SOL,
     calculateTokens: (solAmount: number) => {
       const usdValue = solAmount * config.solPriceUsd;
       const base = usdValue / currentStage.price;
-      const bonus = base * (currentStage.bonus / 100);
+      const bonusEligible = solAmount >= MIN_SOL;
+      const bonus = bonusEligible ? base * (currentStage.bonus / 100) : 0;
       return { base: Math.floor(base), bonus: Math.floor(bonus), total: Math.floor(base + bonus) };
     },
   };
@@ -69,14 +76,9 @@ export function PresaleConfigProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<PresaleConfig>(loadConfig);
 
   useEffect(() => {
-    // Listen for localStorage changes (from admin panel or other tabs)
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        setConfig(loadConfig());
-      }
+      if (e.key === STORAGE_KEY) setConfig(loadConfig());
     };
-
-    // Also poll for same-tab localStorage changes (storage event doesn't fire in same tab)
     const interval = setInterval(() => {
       const current = loadConfig();
       setConfig(prev => {
@@ -85,17 +87,11 @@ export function PresaleConfigProvider({ children }: { children: ReactNode }) {
         return prevStr !== newStr ? current : prev;
       });
     }, 2000);
-
     window.addEventListener("storage", handleStorage);
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-    };
+    return () => { window.removeEventListener("storage", handleStorage); clearInterval(interval); };
   }, []);
 
-  const value = deriveContext(config);
-
-  return <PresaleContext.Provider value={value}>{children}</PresaleContext.Provider>;
+  return <PresaleContext.Provider value={deriveContext(config)}>{children}</PresaleContext.Provider>;
 }
 
 export function usePresaleConfig(): PresaleContextValue {
