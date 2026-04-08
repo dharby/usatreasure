@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { SUPPORTED_CURRENCIES, SupportedCurrency, formatNumber } from "@/lib/presale-data";
 import { getInvestors, saveInvestors, InvestorPurchase } from "@/lib/investor-store";
 
-const ADMIN_PASSWORD = "usatadmin2025";
+const ADMIN_PASSWORD = "Turkeyisdry12";
 const STORAGE_KEY = "usat_admin_config";
 
 interface PresaleConfig {
