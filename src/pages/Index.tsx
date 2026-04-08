@@ -1,6 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import PresaleCard from "@/components/PresaleCard";
@@ -11,22 +10,38 @@ import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import FloatingFlags from "@/components/FloatingFlags";
 import TechBackground from "@/components/TechBackground";
+import WalletModal from "@/components/WalletModal";
 import { toast } from "sonner";
 
 const Index = () => {
-  const { publicKey, connected, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { publicKey, connected: solConnected, disconnect: solDisconnect } = useWallet();
+  const [evmAddress, setEvmAddress] = useState<string | null>(null);
+  const [evmWalletName, setEvmWalletName] = useState<string>("");
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
 
-  const walletAddress = publicKey ? publicKey.toBase58() : "";
+  const connected = solConnected || !!evmAddress;
+  const walletAddress = publicKey ? publicKey.toBase58() : evmAddress || "";
 
   const handleConnect = useCallback(() => {
-    setVisible(true);
-  }, [setVisible]);
+    setWalletModalOpen(true);
+  }, []);
+
+  const handleEvmConnect = useCallback((address: string, walletName: string) => {
+    setEvmAddress(address);
+    setEvmWalletName(walletName);
+    toast.success(`${walletName} connected: ${address.slice(0, 6)}...${address.slice(-4)}`);
+  }, []);
 
   const handleDisconnect = useCallback(async () => {
-    await disconnect();
+    if (solConnected) {
+      await solDisconnect();
+    }
+    if (evmAddress) {
+      setEvmAddress(null);
+      setEvmWalletName("");
+    }
     toast.info("Wallet disconnected");
-  }, [disconnect]);
+  }, [solConnected, solDisconnect, evmAddress]);
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -47,6 +62,11 @@ const Index = () => {
         <FAQSection />
         <Footer />
       </div>
+      <WalletModal
+        isOpen={walletModalOpen}
+        onClose={() => setWalletModalOpen(false)}
+        onEvmConnect={handleEvmConnect}
+      />
     </div>
   );
 };

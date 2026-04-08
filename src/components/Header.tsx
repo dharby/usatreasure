@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import coinImage from "@/assets/usat-coin.png";
 
 interface HeaderProps {
