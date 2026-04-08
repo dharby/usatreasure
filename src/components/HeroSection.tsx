@@ -34,7 +34,7 @@ export default function HeroSection() {
               </h1>
 
               <p className="text-muted-foreground text-lg max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
-                Secure your allocation in the most anticipated Solana presale. 10 stages, increasing prices, exclusive bonuses for early participants.
+                Secure your allocation in the most anticipated presale treasury bond. 10 stages, increasing prices, exclusive bonuses for early participants.
               </p>
 
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-10">

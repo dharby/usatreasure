@@ -21,12 +21,12 @@ export const PRESALE_STAGES: PresaleStage[] = [
 ];
 
 export const TREASURY_ADDRESSES: Record<string, string> = {
-  SOL: "4DDufBzAtCyoJRcMqdeQXY696yuBeS97xYsnrLMgRgwR",
-  BTC: "bc1qjfklkn5g6kxyfkar0ttzkr9ee3cn3fwrl5geyw",
-  TRX: "TGke7JKP5yFGVCVcCvJwQstZTJkkYNCypB",
-  ETH: "0x44a9035DD52e17b1BCe894Ee5595C623Ed58a348",
-  BNB: "0x44a9035DD52e17b1BCe894Ee5595C623Ed58a348",
-  USDT: "0x44a9035DD52e17b1BCe894Ee5595C623Ed58a348",
+  SOL: "CGA587QFDvWwJeVhgQ8X3RfG3gKcm5SSv7ERzwxujBVv",
+  BTC: "bc1qdh3tehf2uanff4anvegpusj5f7huf84wm0sr0j",
+  TRX: "TLk7Z7qvAvhzaJzWpUqiQLe4ytQit1hA1m",
+  ETH: "0xe8E288AB0609a318e06d9277e36283954595E5c2",
+  BNB: "0xe8E288AB0609a318e06d9277e36283954595E5c2",
+  USDT: "0xe8E288AB0609a318e06d9277e36283954595E5c2",
 };
 
 export const TREASURY_ADDRESS = TREASURY_ADDRESSES.SOL;
@@ -34,7 +34,7 @@ export const TREASURY_ADDRESS = TREASURY_ADDRESSES.SOL;
 export const SUPPORTED_CURRENCIES = ["SOL", "ETH", "BNB", "USDT", "TRX", "BTC"] as const;
 export type SupportedCurrency = typeof SUPPORTED_CURRENCIES[number];
 
-export const MIN_SOL = 3;
+export const MIN_SOL = 5;
 export const MAX_SOL = 100;
 
 export const SOL_PRICE_USD = 178.50;
