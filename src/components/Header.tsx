@@ -13,7 +13,6 @@ interface HeaderProps {
 
 export default function Header({ walletConnected, walletAddress, onConnect, onDisconnect }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { setVisible } = useWalletModal();
   const navItems = ["Presale", "Tokenomics", "Stages", "Dashboard"];
 
   const scrollTo = (id: string) => {
@@ -25,7 +24,7 @@ export default function Header({ walletConnected, walletAddress, onConnect, onDi
     if (walletConnected) {
       onDisconnect();
     } else {
-      setVisible(true);
+      onConnect();
     }
   };
 
