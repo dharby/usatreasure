@@ -18,7 +18,7 @@ const FAQ_ITEMS = [
   {
     question: "What is the USA TREASURE ($USAT) presale?",
     answer:
-      "The $USAT presale is a multi-stage token sale event with 10 stages, each offering tokens at progressively higher prices. Early participants benefit from lower prices and bonus token allocations. The presale distributes 400 million tokens (40% of total supply) across all stages.",
+      "The $USAT presale is a multi-stage treasury bond token sale event with 10 stages, each offering tokens at progressively higher prices. Early participants benefit from lower prices and bonus token allocations. The presale distributes 400 million tokens (40% of total supply) across all stages. The final stage price (Stage 10) is the listing price.",
   },
   {
     question: "What currencies can I use to purchase?",
@@ -33,7 +33,7 @@ const FAQ_ITEMS = [
   {
     question: "How does the token pricing work across stages?",
     answer:
-      "Token prices increase with each stage — starting at $0.0005 in Stage 1 (Eagle) and reaching $0.100 in Stage 10 (Apex). Earlier stages also offer higher bonus percentages, from 50% in Stage 1 down to 0% in Stage 10. Once a stage sells out, the next stage begins automatically.",
+      "Token prices increase with each stage — starting at $0.0005 in Stage 1 (Eagle) and reaching $0.100 in Stage 10 (Apex), which is also the listing price. Earlier stages also offer higher bonus percentages, from 50% in Stage 1 down to 0% in Stage 10. Once a stage sells out, the next stage begins automatically.",
   },
   {
     question: "How do I receive my $USAT tokens after purchase?",
