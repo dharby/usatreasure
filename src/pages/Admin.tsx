@@ -19,7 +19,7 @@ interface PresaleConfig {
 
 const DEFAULT_CONFIG: PresaleConfig = {
   solPriceUsd: 178.5,
-  treasuryAddress: "4DDufBzAtCyoJRcMqdeQXY696yuBeS97xYsnrLMgRgwR",
+  treasuryAddress: "CGA587QFDvWwJeVhgQ8X3RfG3gKcm5SSv7ERzwxujBVv",
   stageEndDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16),
   stages: [
     { id: 1, name: "Eagle", price: 0.0005, allocation: 50000000, sold: 50000000, bonus: 50 },
@@ -116,7 +116,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const solEq = parseFloat(newSolEq);
     const usdValue = solEq * config.solPriceUsd;
     const baseTokens = Math.floor(usdValue / stage.price);
-    const bonusEligible = solEq >= 3;
+    const bonusEligible = solEq >= 5;
     const bonusTokens = bonusEligible ? Math.floor(baseTokens * (stage.bonus / 100)) : 0;
 
     const purchase: InvestorPurchase = {

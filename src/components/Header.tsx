@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import coinImage from "@/assets/usat-coin.png";
 
 interface HeaderProps {
@@ -14,7 +13,6 @@ interface HeaderProps {
 
 export default function Header({ walletConnected, walletAddress, onConnect, onDisconnect }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { setVisible } = useWalletModal();
   const navItems = ["Presale", "Tokenomics", "Stages", "Dashboard"];
 
   const scrollTo = (id: string) => {
@@ -26,7 +24,7 @@ export default function Header({ walletConnected, walletAddress, onConnect, onDi
     if (walletConnected) {
       onDisconnect();
     } else {
-      setVisible(true);
+      onConnect();
     }
   };
 

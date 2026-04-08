@@ -56,7 +56,7 @@ export default function PresaleCard({ walletConnected, onConnect }: PresaleCardP
   };
 
   const quickAmounts: Record<SupportedCurrency, number[]> = {
-    SOL: [3, 5, 10, 50],
+    SOL: [5, 10, 25, 50],
     ETH: [0.1, 0.5, 1, 5],
     BNB: [1, 3, 5, 20],
     USDT: [500, 1000, 5000, 10000],

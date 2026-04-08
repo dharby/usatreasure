@@ -19,7 +19,7 @@ export default function StagesSection() {
             <span className="gold-gradient-text">10 Presale Stages</span>
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Early stages offer the lowest price and highest bonuses. Don't miss your window.
+            Early stages offer the lowest price and highest bonuses. Stage 10 price is the listing price.
           </p>
         </motion.div>
 
