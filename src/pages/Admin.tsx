@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock, LogOut, Settings, Coins, Clock, Save, Eye, EyeOff, Plus, Trash2, Users } from "lucide-react";
+import { Lock, LogOut, Settings, Coins, Clock, Save, Eye, EyeOff, Plus, Trash2, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SUPPORTED_CURRENCIES, SupportedCurrency, formatNumber } from "@/lib/presale-data";
 import { getInvestors, saveInvestors, InvestorPurchase } from "@/lib/investor-store";
+import { supabase } from "@/integrations/supabase/client";
 
-const ADMIN_PASSWORD = "Turkeyisdry12";
 const STORAGE_KEY = "usat_admin_config";
 
 interface PresaleConfig {
@@ -36,17 +36,38 @@ const DEFAULT_CONFIG: PresaleConfig = {
 };
 
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem("usat_admin_auth", "true");
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      // Check if user has admin role
+      const { data: roles, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .eq("role", "admin");
+
+      if (roleError || !roles || roles.length === 0) {
+        await supabase.auth.signOut();
+        toast.error("Access denied. Admin privileges required.");
+        return;
+      }
       onLogin();
       toast.success("Logged in as admin");
-    } else {
-      toast.error("Invalid password");
+    } catch {
+      toast.error("Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,19 +82,33 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
           <p className="text-sm text-muted-foreground mt-1">USA TREASURE Control Panel</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Input
+              type="email"
+              placeholder="Admin email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-muted/50 border-border/50"
+              required
+            />
+          </div>
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
-              placeholder="Enter admin password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-muted/50 border-border/50 pr-10"
+              required
             />
             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <Button type="submit" className="w-full gold-gradient-bg text-primary-foreground font-semibold">Login</Button>
+          <Button type="submit" className="w-full gold-gradient-bg text-primary-foreground font-semibold" disabled={loading}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Login
+          </Button>
         </form>
       </motion.div>
     </div>
@@ -82,8 +117,16 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [config, setConfig] = useState<PresaleConfig>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.solPriceUsd === "number" && Array.isArray(parsed.stages)) {
+          return parsed;
+        }
+      }
+    } catch { /* ignore malformed JSON */ }
+    return DEFAULT_CONFIG;
   });
   const [investors, setInvestors] = useState<InvestorPurchase[]>(getInvestors);
   const [tab, setTab] = useState<"config" | "investors">("config");
@@ -146,6 +189,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     toast.success("Purchase removed");
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    onLogout();
+    toast.info("Logged out");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40 bg-card/60 backdrop-blur-xl sticky top-0 z-50">
@@ -161,7 +210,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <button onClick={() => setTab("investors")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tab === "investors" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
               <Users className="w-3 h-3 inline mr-1" />Investors ({investors.length})
             </button>
-            <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-foreground ml-2">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground ml-2">
               <LogOut className="w-4 h-4 mr-2" />Logout
             </Button>
           </div>
@@ -300,14 +349,42 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 export default function Admin() {
-  const [authenticated, setAuthenticated] = useState(() => sessionStorage.getItem("usat_admin_auth") === "true");
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("usat_admin_auth");
-    setAuthenticated(false);
-    toast.info("Logged out");
-  };
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .eq("role", "admin");
+        if (roles && roles.length > 0) {
+          setAuthenticated(true);
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_OUT") {
+        setAuthenticated(false);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!authenticated) return <AdminLogin onLogin={() => setAuthenticated(true)} />;
-  return <AdminDashboard onLogout={handleLogout} />;
+  return <AdminDashboard onLogout={() => setAuthenticated(false)} />;
 }
