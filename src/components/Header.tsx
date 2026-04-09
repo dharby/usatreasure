@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Wallet } from "lucide-react";
+import { Menu, X, Wallet, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import coinImage from "@/assets/usat-coin.png";
 
@@ -9,9 +9,10 @@ interface HeaderProps {
   walletAddress: string;
   onConnect: () => void;
   onDisconnect: () => void;
+  onVerifyPurchase: () => void;
 }
 
-export default function Header({ walletConnected, walletAddress, onConnect, onDisconnect }: HeaderProps) {
+export default function Header({ walletConnected, walletAddress, onConnect, onDisconnect, onVerifyPurchase }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = ["Presale", "Tokenomics", "Stages", "Dashboard"];
 
@@ -45,7 +46,20 @@ export default function Header({ walletConnected, walletAddress, onConnect, onDi
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Verify Purchase button */}
+          {!walletConnected && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onVerifyPurchase}
+              className="border-primary/30 text-primary hover:bg-primary/10 hidden sm:inline-flex"
+            >
+              <ShieldCheck className="w-4 h-4 mr-1" />
+              Verify Purchase
+            </Button>
+          )}
+
           {walletConnected ? (
             <Button variant="outline" size="sm" onClick={handleWalletClick} className="border-primary/30 text-primary hover:bg-primary/10">
               <Wallet className="w-4 h-4 mr-2" />
@@ -77,6 +91,11 @@ export default function Header({ walletConnected, walletAddress, onConnect, onDi
                   {item}
                 </button>
               ))}
+              {!walletConnected && (
+                <button onClick={() => { onVerifyPurchase(); setMobileOpen(false); }} className="text-left text-sm text-primary py-2 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Verify Purchase
+                </button>
+              )}
             </div>
           </motion.div>
         )}

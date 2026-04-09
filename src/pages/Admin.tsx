@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock, LogOut, Settings, Coins, Clock, Save, Eye, EyeOff, Plus, Trash2, Users } from "lucide-react";
+import { Lock, LogOut, Settings, Coins, Clock, Save, Eye, EyeOff, Plus, Trash2, Users, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SUPPORTED_CURRENCIES, SupportedCurrency, formatNumber } from "@/lib/presale-data";
-import { getInvestors, saveInvestors, InvestorPurchase } from "@/lib/investor-store";
+import { InvestorPurchase, getInvestorsFromDb, addInvestorToDb, removeInvestorFromDb } from "@/lib/investor-store";
+import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_PASSWORD = "usatadmin2025";
 const STORAGE_KEY = "usat_admin_config";
@@ -85,8 +86,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   });
-  const [investors, setInvestors] = useState<InvestorPurchase[]>(getInvestors);
+  const [investors, setInvestors] = useState<InvestorPurchase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"config" | "investors">("config");
+  const [supabaseAuth, setSupabaseAuth] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
 
   // New investor form
   const [newWallet, setNewWallet] = useState("");
@@ -95,6 +100,40 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [newSolEq, setNewSolEq] = useState("");
   const [newStage, setNewStage] = useState("3");
   const [newNote, setNewNote] = useState("");
+
+  // Check supabase auth on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSupabaseAuth(!!data.session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseAuth(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load investors from DB
+  useEffect(() => {
+    if (!supabaseAuth) { setLoading(false); return; }
+    loadInvestors();
+  }, [supabaseAuth]);
+
+  const loadInvestors = async () => {
+    setLoading(true);
+    const data = await getInvestorsFromDb();
+    setInvestors(data);
+    setLoading(false);
+  };
+
+  const handleSupabaseLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+    if (error) {
+      toast.error("Backend auth failed: " + error.message);
+    } else {
+      toast.success("Backend authenticated — you can now manage investors");
+    }
+  };
 
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
@@ -107,9 +146,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setConfig({ ...config, stages });
   };
 
-  const handleAddInvestor = () => {
+  const handleAddInvestor = async () => {
     if (!newWallet || !newAmount || !newSolEq) {
       toast.error("Fill in wallet, amount, and SOL equivalent"); return;
+    }
+    if (!supabaseAuth) {
+      toast.error("Please sign in to backend first to add purchases"); return;
     }
     const stageNum = parseInt(newStage);
     const stage = config.stages.find(s => s.id === stageNum) || config.stages[0];
@@ -119,8 +161,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const bonusEligible = solEq >= 5;
     const bonusTokens = bonusEligible ? Math.floor(baseTokens * (stage.bonus / 100)) : 0;
 
-    const purchase: InvestorPurchase = {
-      id: crypto.randomUUID(),
+    const result = await addInvestorToDb({
       walletAddress: newWallet.trim(),
       currency: newCurrency,
       amount: parseFloat(newAmount),
@@ -131,19 +172,26 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       stage: stageNum,
       date: new Date().toISOString().slice(0, 10),
       note: newNote || undefined,
-    };
-    const updated = [...investors, purchase];
-    setInvestors(updated);
-    saveInvestors(updated);
-    setNewWallet(""); setNewAmount(""); setNewSolEq(""); setNewNote("");
-    toast.success(`Added ${formatNumber(purchase.tokensTotal)} USAT for ${newWallet.slice(0, 8)}...`);
+      verified: true,
+    });
+
+    if (result) {
+      setInvestors(prev => [result, ...prev]);
+      setNewWallet(""); setNewAmount(""); setNewSolEq(""); setNewNote("");
+      toast.success(`Added ${formatNumber(result.tokensTotal)} USAT for ${newWallet.slice(0, 8)}...`);
+    } else {
+      toast.error("Failed to add purchase. Check backend auth and permissions.");
+    }
   };
 
-  const handleRemoveInvestor = (id: string) => {
-    const updated = investors.filter(i => i.id !== id);
-    setInvestors(updated);
-    saveInvestors(updated);
-    toast.success("Purchase removed");
+  const handleRemoveInvestor = async (id: string) => {
+    const success = await removeInvestorFromDb(id);
+    if (success) {
+      setInvestors(prev => prev.filter(i => i.id !== id));
+      toast.success("Purchase removed");
+    } else {
+      toast.error("Failed to remove purchase");
+    }
   };
 
   return (
@@ -161,6 +209,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <button onClick={() => setTab("investors")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tab === "investors" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
               <Users className="w-3 h-3 inline mr-1" />Investors ({investors.length})
             </button>
+            <div className={`w-2 h-2 rounded-full ${supabaseAuth ? "bg-green-400" : "bg-red-400"}`} title={supabaseAuth ? "Backend connected" : "Backend not authenticated"} />
             <Button variant="ghost" size="sm" onClick={onLogout} className="text-muted-foreground hover:text-foreground ml-2">
               <LogOut className="w-4 h-4 mr-2" />Logout
             </Button>
@@ -169,6 +218,21 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
+        {/* Backend auth prompt */}
+        {!supabaseAuth && tab === "investors" && (
+          <div className="glass-card p-6">
+            <h2 className="font-display font-semibold text-lg mb-3 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" />Backend Authentication
+            </h2>
+            <p className="text-xs text-muted-foreground mb-4">Sign in with your admin account to manage investor purchases in the database.</p>
+            <form onSubmit={handleSupabaseLogin} className="grid sm:grid-cols-3 gap-3">
+              <Input type="email" placeholder="Admin email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} className="bg-muted/50 border-border/50" />
+              <Input type="password" placeholder="Password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="bg-muted/50 border-border/50" />
+              <Button type="submit" className="gold-gradient-bg text-primary-foreground font-semibold">Sign In</Button>
+            </form>
+          </div>
+        )}
+
         {tab === "config" ? (
           <>
             <div className="glass-card p-6">
@@ -263,15 +327,25 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <Input value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Transaction hash or note" className="bg-muted/50 border-border/50" />
                 </div>
               </div>
-              <Button onClick={handleAddInvestor} className="mt-4 gold-gradient-bg text-primary-foreground font-semibold">
+              <Button onClick={handleAddInvestor} disabled={!supabaseAuth} className="mt-4 gold-gradient-bg text-primary-foreground font-semibold">
                 <Plus className="w-4 h-4 mr-2" />Add Purchase
               </Button>
+              {!supabaseAuth && <p className="text-[10px] text-destructive mt-2">Sign in to backend above to add purchases</p>}
             </div>
 
             {/* Investor list */}
             <div className="glass-card p-6">
-              <h2 className="font-display font-semibold text-lg mb-4">Verified Purchases ({investors.length})</h2>
-              {investors.length === 0 ? (
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display font-semibold text-lg">Verified Purchases ({investors.length})</h2>
+                <Button variant="outline" size="sm" onClick={loadInvestors} disabled={!supabaseAuth} className="border-border/50 text-xs">
+                  Refresh
+                </Button>
+              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : investors.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">No verified purchases yet</p>
               ) : (
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">

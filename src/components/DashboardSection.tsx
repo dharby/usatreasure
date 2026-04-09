@@ -3,25 +3,35 @@ import { motion } from "framer-motion";
 import { Wallet, Coins, Gift, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatNumber } from "@/lib/presale-data";
-import { getInvestorsByWallet, InvestorPurchase } from "@/lib/investor-store";
+import { getInvestorsByWalletFromDb, InvestorPurchase } from "@/lib/investor-store";
 import { toast } from "sonner";
 
 interface DashboardProps {
   walletConnected: boolean;
   walletAddress: string;
   onConnect: () => void;
+  onVerifyPurchase: () => void;
 }
 
-export default function DashboardSection({ walletConnected, walletAddress, onConnect }: DashboardProps) {
+export default function DashboardSection({ walletConnected, walletAddress, onConnect, onVerifyPurchase }: DashboardProps) {
   const [purchases, setPurchases] = useState<InvestorPurchase[]>([]);
+  const [loading, setLoading] = useState(false);
   const handleClaim = () => toast.info("Claim will be available after presale ends.");
 
   useEffect(() => {
     if (!walletAddress) { setPurchases([]); return; }
-    const load = () => setPurchases(getInvestorsByWallet(walletAddress));
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      const data = await getInvestorsByWalletFromDb(walletAddress);
+      if (!cancelled) {
+        setPurchases(data);
+        setLoading(false);
+      }
+    };
     load();
-    const interval = setInterval(load, 3000);
-    return () => clearInterval(interval);
+    const interval = setInterval(load, 10000); // poll every 10s
+    return () => { cancelled = true; clearInterval(interval); };
   }, [walletAddress]);
 
   const totalContributed = purchases.reduce((a, p) => a + p.solEquivalent, 0);
@@ -43,7 +53,7 @@ export default function DashboardSection({ walletConnected, walletAddress, onCon
           <p className="text-muted-foreground">Track your contributions and token allocations</p>
         </motion.div>
 
-        {!walletConnected ? (
+        {!walletAddress ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -51,12 +61,21 @@ export default function DashboardSection({ walletConnected, walletAddress, onCon
             className="glass-card max-w-md mx-auto p-8 text-center"
           >
             <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-display text-lg font-semibold mb-2">Connect Your Wallet</h3>
-            <p className="text-sm text-muted-foreground mb-6">View your contributions and token allocations</p>
-            <Button onClick={onConnect} className="gold-gradient-bg text-primary-foreground font-semibold hover:opacity-90">
-              Connect Wallet
-            </Button>
+            <h3 className="font-display text-lg font-semibold mb-2">View Your Dashboard</h3>
+            <p className="text-sm text-muted-foreground mb-6">Connect your wallet or verify your purchase to see your allocations</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={onConnect} className="gold-gradient-bg text-primary-foreground font-semibold hover:opacity-90">
+                Connect Wallet
+              </Button>
+              <Button onClick={onVerifyPurchase} variant="outline" className="border-primary/30 text-primary hover:bg-primary/10">
+                Verify Purchase
+              </Button>
+            </div>
           </motion.div>
+        ) : loading && purchases.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
         ) : purchases.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -67,11 +86,17 @@ export default function DashboardSection({ walletConnected, walletAddress, onCon
             <Coins className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-display text-lg font-semibold mb-2">No Purchases Yet</h3>
             <p className="text-sm text-muted-foreground">
-              Your purchases will appear here once your deposit to the treasury address is verified.
+              Your purchases will appear here once your deposit to the treasury address is verified by admin.
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              Viewing wallet: {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
             </p>
           </motion.div>
         ) : (
           <div className="max-w-4xl mx-auto space-y-6">
+            <p className="text-xs text-muted-foreground text-center">
+              Wallet: {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
+            </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { icon: Wallet, label: "SOL Equivalent", value: `${totalContributed.toFixed(2)} SOL` },
