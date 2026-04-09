@@ -13,12 +13,12 @@ const COINGECKO_IDS: Record<SupportedCurrency, string> = {
 export type CryptoPrices = Record<SupportedCurrency, number>;
 
 const FALLBACK_PRICES: CryptoPrices = {
-  SOL: 178.5,
-  ETH: 3500,
+  SOL: 83.1,
+  ETH: 2186,
   BNB: 600,
   USDT: 1,
-  TRX: 0.12,
-  BTC: 97000,
+  TRX: 0.3,
+  BTC: 71000,
 };
 
 export function useCryptoPrices(): { prices: CryptoPrices; loading: boolean; lastUpdated: Date | null } {
