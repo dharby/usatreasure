@@ -77,9 +77,8 @@ export default function VerifyPurchaseModal({ isOpen, onClose, onVerify }: Verif
               </Button>
             </form>
 
-            <p className="text-[10px] text-muted-foreground text-center mt-3">
-              Can't connect your wallet? Use this to check your purchase status.
-            </p>
+
+
           </motion.div>
         </motion.div>
       )}
