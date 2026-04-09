@@ -53,10 +53,8 @@ export default function VerifyPurchaseModal({ isOpen, onClose, onVerify }: Verif
               </button>
             </div>
 
-            <p className="text-xs text-muted-foreground mb-4">
-              Enter the wallet address you used to send your deposit to the treasury. 
-              If your purchase has been verified by admin, your dashboard will be updated automatically.
-            </p>
+
+
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
@@ -79,9 +77,8 @@ export default function VerifyPurchaseModal({ isOpen, onClose, onVerify }: Verif
               </Button>
             </form>
 
-            <p className="text-[10px] text-muted-foreground text-center mt-3">
-              Can't connect your wallet? Use this to check your purchase status.
-            </p>
+
+
           </motion.div>
         </motion.div>
       )}

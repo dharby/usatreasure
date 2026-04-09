@@ -7,6 +7,7 @@ import StagesSection from "@/components/StagesSection";
 import TokenomicsSection from "@/components/TokenomicsSection";
 import DashboardSection from "@/components/DashboardSection";
 import FAQSection from "@/components/FAQSection";
+import KYCSection from "@/components/KYCSection";
 import Footer from "@/components/Footer";
 import FloatingFlags from "@/components/FloatingFlags";
 import TechBackground from "@/components/TechBackground";
@@ -83,6 +84,7 @@ const Index = () => {
           onConnect={handleConnect}
           onVerifyPurchase={handleVerifyPurchase}
         />
+        <KYCSection />
         <FAQSection />
         <Footer />
       </div>
