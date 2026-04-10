@@ -39,7 +39,7 @@ export const MAX_SOL = 100;
 
 export const SOL_PRICE_USD = 83.74;
 export const TOTAL_SUPPLY = 1_000_000_000;
-export const PRESALE_ALLOCATION = 400_000_000;
+export const PRESALE_ALLOCATION = 50_000_000;
 
 export const TOKENOMICS = [
   { label: "Presale", percentage: 40, color: "hsl(42 60% 58%)" },
